@@ -1,3 +1,4 @@
+import streamlit as st
 import torch
 from transformers import BlipProcessor, BlipForConditionalGeneration, T5Tokenizer, T5ForConditionalGeneration
 from PIL import Image
@@ -5,10 +6,8 @@ import requests
 from io import BytesIO
 import imageio
 import numpy as np
-import streamlit as st
 from gtts import gTTS
-import os
-
+import base64
 
 # Paths to the model files
 t5_model_path = r'C:\Users\aljes\Downloads\Capstone_project_deployment\t5_model.pth'
@@ -21,7 +20,6 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 blip_processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
 blip_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base").to(device)
 
-# Load BLIP model weights with map_location
 blip_model.load_state_dict(torch.load(blip_model_path, map_location=device))
 blip_model.eval()  # Set the model to evaluation mode
 
@@ -29,122 +27,109 @@ blip_model.eval()  # Set the model to evaluation mode
 t5_tokenizer = T5Tokenizer.from_pretrained("t5-base")
 t5_model = T5ForConditionalGeneration.from_pretrained("t5-base").to(device)
 
-# Load T5 model weights with map_location
 t5_model.load_state_dict(torch.load(t5_model_path, map_location=device))
 t5_model.eval()  # Set the model to evaluation mode
 
-def generate_gif_description(
-    gif_url,
-    num_frames=5,
-    frame_size=(256, 256),
-    max_length=128,
-    max_target_length=150,
-    num_beams=4,
-    device=device
-):
-    """
-    Processes an unseen GIF to generate a description.
-    """
-    # Step 1: Download GIF
-    try:
-        response = requests.get(gif_url, timeout=10)
-        response.raise_for_status()
-        gif_bytes = BytesIO(response.content)
-    except requests.exceptions.RequestException as e:
-        return {"error": f"Failed to download GIF: {e}"}
 
-    # Step 2: Extract frames from the GIF
+def generate_gif_description(gif_path, num_frames=5, frame_size=(256, 256), max_length=128, max_target_length=150, num_beams=4):
+    """Processes an unseen GIF to generate a description."""
     try:
-        gif = imageio.mimread(gif_bytes, memtest=False)
+        gif = imageio.mimread(gif_path)
         total_frames = len(gif)
         if total_frames == 0:
             return {"error": "No frames found in the GIF."}
+
         interval = max(total_frames // num_frames, 1)
         selected_frames = [gif[i] for i in range(0, total_frames, interval)][:num_frames]
-    except Exception as e:
-        return {"error": f"Error extracting frames from GIF: {e}"}
 
-    # Ensure padding for missing frames
-    while len(selected_frames) < num_frames:
-        selected_frames.append(np.zeros((frame_size[1], frame_size[0], 3), dtype=np.uint8))
-    selected_frames = selected_frames[:num_frames]
+        # Ensure padding for missing frames
+        while len(selected_frames) < num_frames:
+            selected_frames.append(np.zeros((frame_size[1], frame_size[0], 3), dtype=np.uint8))
+        selected_frames = selected_frames[:num_frames]
 
-    # Step 3: Generate captions for each frame using BLIP
-    captions = []
-    for frame in selected_frames:
-        try:
+        # Generate captions for each frame using BLIP
+        captions = []
+        for frame in selected_frames:
             img = Image.fromarray(frame).convert('RGB')
             inputs = blip_processor(images=img, return_tensors="pt").to(device)
             with torch.no_grad():
                 outputs = blip_model.generate(**inputs, max_length=50)
             captions.append(blip_processor.tokenizer.decode(outputs[0], skip_special_tokens=True))
-        except Exception as e:
-            captions.append("")
 
-    # Step 4: Concatenate captions for T5 input
-    concatenated_captions = " ".join(captions)
+        # Concatenate captions for T5 input
+        concatenated_captions = " ".join(captions)
 
-    # Step 5: Use T5 to summarize the concatenated captions
-    try:
-        inputs = t5_tokenizer(
-            concatenated_captions, return_tensors="pt", max_length=max_length, truncation=True
-        ).to(device)
+        # Use T5 to summarize the concatenated captions
+        inputs = t5_tokenizer(concatenated_captions, return_tensors="pt", max_length=max_length, truncation=True).to(device)
         with torch.no_grad():
             summary_ids = t5_model.generate(
-                inputs["input_ids"],
-                max_length=max_target_length,
-                num_beams=num_beams,
-                early_stopping=True,
+                inputs["input_ids"], max_length=max_target_length, num_beams=num_beams, early_stopping=True
             )
         description = t5_tokenizer.decode(summary_ids[0], skip_special_tokens=True)
         return {"description": description, "captions": captions}
     except Exception as e:
-        return {"error": f"Failed to generate description: {e}"}
+        return {"error": f"Error processing GIF: {e}"}
+
 
 def main():
     st.set_page_config(page_title="GIF Description Generator", page_icon="✨", layout="wide")
-    st.markdown(
-        "<h1 style='text-align: center; color: #4CAF50;'>GIF Description Generator</h1>",
-        unsafe_allow_html=True,
-    )
-    st.write("Provide a GIF URL, and the app will generate a detailed description.")
+    st.markdown("<h1 style='text-align: center; color: #4CAF50;'>GIF Description Generator</h1>", unsafe_allow_html=True)
+    st.write("Upload a GIF or provide a GIF URL to generate a detailed description.")
 
-    gif_url = st.text_input("Enter the URL of the GIF:", placeholder="Paste the GIF link here")
-    if st.button("Generate Description", use_container_width=True):
-        if not gif_url:
-            st.error("Please provide a GIF URL.")
+    # Choose input method
+    input_method = st.radio("Select input method:", ["Upload GIF", "Paste GIF URL"], index=0)
+
+    gif_path = None
+    if input_method == "Upload GIF":
+        uploaded_file = st.file_uploader("Upload your GIF file:", type=["gif"])
+        if uploaded_file:
+            gif_path = BytesIO(uploaded_file.read())
+            st.image(uploaded_file, caption="Uploaded GIF", use_column_width=True, output_format="auto")
+    else:
+        gif_url = st.text_input("Enter the URL of the GIF:", placeholder="Paste the GIF link here")
+        if gif_url:
+            try:
+                response = requests.get(gif_url, timeout=10)
+                response.raise_for_status()
+                gif_path = BytesIO(response.content)
+                st.image(gif_url, caption="GIF from URL", use_column_width=True, output_format="auto")
+            except Exception as e:
+                st.error(f"Error fetching GIF from URL: {e}")
+
+    if st.button("Generate Description"):
+        if not gif_path:
+            st.error("Please upload a GIF or provide a valid URL.")
         else:
             with st.spinner("Generating description... Please wait!"):
-                result = generate_gif_description(gif_url, device=device)
+                result = generate_gif_description(gif_path)
 
             if "error" in result:
                 st.error(result["error"])
             else:
                 st.success("Description generated successfully!")
-                
-                # Display the description
                 description = result["description"]
-                st.subheader("Generated Description")
+                st.subheader("Description")
+                st.code(description, language="text")
+
+                # Generate audio from the description
+                tts = gTTS(description, lang="en")
+                audio_buffer = BytesIO()
+                tts.write_to_fp(audio_buffer)
+                audio_buffer.seek(0)
+
+                # Encode audio to base64
+                audio_base64 = base64.b64encode(audio_buffer.getvalue()).decode("utf-8")
+                st.subheader("Play Description Audio")
                 st.markdown(
-                    f"<div style=padding: 10px; border-radius: 5px;'>"
-                    f"<strong>{description}</strong>"
-                    f"</div>",
+                    f"""
+                    <audio controls>
+                        <source src="data:audio/mpeg;base64,{audio_base64}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                    """,
                     unsafe_allow_html=True,
                 )
 
-                # Text-to-Speech Conversion
-                if st.button("Convert Description to Speech"):
-                    if description:
-                        tts = gTTS(description, lang='en')
-                        audio_file = "output.mp3"
-                        tts.save(audio_file)
-                        st.success("Audio generated successfully!")
-
-                        # Embed audio player
-                        audio_bytes = open(audio_file, "rb").read()
-                        st.audio(audio_bytes, format="audio/mp3")
-                    else:
-                        st.warning("No description available for conversion.")
 
 if __name__ == "__main__":
     main()

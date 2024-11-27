@@ -32,6 +32,6 @@ This project utilizes a data pipeline to handle and process large GIF datasets. 
 The project is managed through a GitHub Project Board to ensure visibility and accountability. Each task is tracked under To Do, In Progress, and Done columns to make the workflow clear for all team members.
 
 ## Challenges Faced
-Data Complexity: Multi-frame GIFs required efficient frame extraction and aggregation.
+Data Complexity: Multi-frame GIFs required efficient frame extraction and aggregation.<br>
 Overfitting: We addressed overfitting through selective layer freezing and hyperparameter tuning.
 Computational Constraints: Managed by reducing the number of frames sampled and optimizing model architecture.

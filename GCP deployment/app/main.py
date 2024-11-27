@@ -25,10 +25,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-@app.get("/health", summary="Health Check")
-async def health_check():
-    return {"status": "healthy"}
-
 @app.on_event("startup")
 async def startup_event():
     logger.info("Application is starting up...")

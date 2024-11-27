@@ -20,10 +20,8 @@ def generate_audio(text):
     return audio_data
 
 # Function to display audio and GIFs
-def display_audio_and_caption(gif_data, audio_bytes, caption, index):
-    gif_html = f'<img src="data:image/gif;base64,{base64.b64encode(gif_data).decode()}" alt="GIF {index + 1}" style="max-width: 100%; height: auto;">'
-    st.markdown(gif_html, unsafe_allow_html=True)
-
+def display_audio_and_caption(image, audio_bytes, caption, index):
+    st.image(image, caption=f"GIF {index + 1}", use_column_width=True)
     audio_base64 = base64.b64encode(audio_bytes.read()).decode('utf-8')
     audio_html = f"""
     <audio controls>
@@ -47,8 +45,7 @@ if option == "Upload GIFs":
     uploaded_files = st.file_uploader("Upload one or more GIF files", type=["gif"], accept_multiple_files=True)
     if uploaded_files:
         for file in uploaded_files:
-            images.append(file.read())
-            #images.append(Image.open(file))
+            images.append(Image.open(file))
 
 elif option == "Enter GIF URLs":
     urls = st.text_area("Enter one or more GIF URLs (one per line)")
@@ -57,8 +54,7 @@ elif option == "Enter GIF URLs":
             try:
                 response = requests.get(url.strip())
                 if response.status_code == 200:
-                    images.append(response.content)
-                    #images.append(Image.open(BytesIO(response.content)))
+                    images.append(Image.open(BytesIO(response.content)))
             except Exception as e:
                 st.error(f"Failed to load GIF from URL: {url}. Error: {e}")
 

@@ -110,7 +110,7 @@ elif option == "Enter GIF URL":
         response = requests.get(url)
         image = Image.open(BytesIO(response.content))
         
-        gif_html = f'<img src="{url}" alt="GIF" width="100%">'
+        gif_html = f'<img src="{url}" alt="GIF" width="50%">'
         st.markdown(gif_html, unsafe_allow_html=True)
         
 

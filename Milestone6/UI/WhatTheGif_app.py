@@ -11,11 +11,11 @@ from google.cloud import texttospeech
 import asyncio
 import os
 
-# Set up authentication by specifying the path to the service account key file
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'path\xyz.json'
+# Set up authentication to the service account key file
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'winter-wonder-442806-e3-93ea92747f60.json'
 
-#Cloud Run endpoint URL
-API_URL = "xyzmodel"
+# Cloud Run endpoint URL
+API_URL = "https://gif-captioning-app-281207086739.us-central1.run.app/generate_caption"
 
 # Function to call Model's function to generate caption from image
 def generate_caption(gif_url,gif_file, option):

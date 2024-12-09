@@ -57,10 +57,29 @@ def display_results(gif_data, caption, audio_bytes):
     st.write(f"**Generated Caption:** {caption}")
     st.audio(audio_bytes)
 
-# Streamlit app setup
-st.set_page_config(page_title="WhatTheGIF?", page_icon="🎤", layout="centered")
-st.markdown("<h1 style='text-align: center;'>WhatTheGIF? 🎤</h1>", unsafe_allow_html=True)
-st.subheader("GIF Captioning and Audio Generation")
+# Function to convert image to base64
+def image_to_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
+
+# Set up the Streamlit page configuration
+st.set_page_config(page_title="WhatTheGIF?",page_icon="🎤", layout="wide")
+
+# Load the image to get its size
+image_path = "WTG.png"
+image = Image.open(image_path)
+
+# Get the original width
+original_width, _ = image.size
+
+# Center the image using HTML in markdown and set width to 2/3 of the original size
+st.markdown(
+    f"<div style='text-align: center;'>"
+    f"<img src='data:image/png;base64,{image_to_base64(image_path)}' width='{int(original_width * 2 / 3)}' />"
+    f"</div>",
+    unsafe_allow_html=True
+)
+
 
 
 #st.title("WhatTheGif!")

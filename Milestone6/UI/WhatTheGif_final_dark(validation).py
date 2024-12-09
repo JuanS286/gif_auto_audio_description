@@ -6,6 +6,9 @@ import base64
 import os
 from google.cloud import texttospeech
 import validators
+from PIL import Image
+import base64
+
 
 # Set up authentication to the service account key file
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'winter-wonder-442806-e3-93ea92747f60.json'
@@ -55,8 +58,30 @@ def display_results(gif_data, caption, audio_bytes):
     st.write(f"**Generated Caption:** {caption}")
     st.audio(audio_bytes)
 
-# Streamlit app setup
-st.set_page_config(page_title="WhatTheGIF?", page_icon="🎤", layout="wide")
+
+# Function to convert image to base64
+def image_to_base64(image_path):
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode()
+
+# Set up the Streamlit page configuration
+st.set_page_config(page_title="WhatTheGIF?",page_icon="🎤", layout="wide")
+
+# Load the image to get its size
+image_path = "WTG.png"
+image = Image.open(image_path)
+
+# Get the original width
+original_width, _ = image.size
+
+# Center the image using HTML in markdown and set width to 2/3 of the original size
+st.markdown(
+    f"<div style='text-align: center;'>"
+    f"<img src='data:image/png;base64,{image_to_base64(image_path)}' width='{int(original_width * 2 / 3)}' />"
+    f"</div>",
+    unsafe_allow_html=True
+)
+
 
 # Custom CSS for sidebar and main section
 custom_css = """
@@ -114,7 +139,7 @@ with st.sidebar:
                 st.warning(f"Invalid URLs detected and will be ignored: {', '.join(invalid_urls)}")
 
 # Main section for results
-st.markdown("<h1 style='text-align: center; font-size: 48px;'>WhatTheGIF? 🎤</h1>", unsafe_allow_html=True)
+#st.markdown("<h1 style='text-align: center; font-size: 48px;'>WhatTheGIF? 🎤</h1>", unsafe_allow_html=True)
 st.subheader("GIF Captioning and Audio Generation")
 
 if st.button("Generate Captions and Audio"):

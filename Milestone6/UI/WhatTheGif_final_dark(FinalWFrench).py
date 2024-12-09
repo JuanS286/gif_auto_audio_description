@@ -64,7 +64,7 @@ def translate_to_french(text):
 
 # Function to display GIF and audio
 def display_results(gif_data, caption, audio_bytes, translated_caption, translated_audio_bytes):
-    gif_html = f'<img src="data:image/gif;base64,{base64.b64encode(gif_data).decode()}" alt="GIF" width="50%">'
+    gif_html = f'<img src="data:image/gif;base64,{base64.b64encode(gif_data).decode()}" alt="GIF" width="25%">'
     st.markdown(gif_html, unsafe_allow_html=True)
     st.write(f"**Generated Caption (EN):** {caption}")
     st.write(f"**Translated Caption (FR):** {translated_caption}")
@@ -85,7 +85,7 @@ def image_to_base64(image_path):
 st.set_page_config(page_title="WhatTheGIF?", page_icon="🎤", layout="wide")
 
 # Load the image to get its size
-image_path = "C:/Users/anate/Pictures/WTG.png"
+image_path = "WTG.png"
 image = Image.open(image_path)
 
 # Get the original width
@@ -161,7 +161,7 @@ if st.button("Generate Captions and Audio"):
     with st.spinner("Processing... Please wait."):
         # Process uploaded files
         for idx, gif_file in enumerate(gif_files):
-            st.write(f"Processing uploaded GIF {idx + 1}...")
+            st.write(f"Uploaded GIF {idx + 1}...")
             gif_data = gif_file.read()
             caption = generate_caption(None, gif_file, "Upload GIFs")
             if caption:
@@ -172,7 +172,7 @@ if st.button("Generate Captions and Audio"):
 
         # Process valid URLs
         for idx, url in enumerate(valid_urls):
-            st.write(f"Processing GIF URL {idx + 1}...")
+            st.write(f"Uploaded GIF URL {idx + 1}...")
             try:
                 response = requests.get(url)
                 if response.status_code == 200:

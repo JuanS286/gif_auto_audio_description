@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#1f77b4"  # Accent color for buttons, sliders, etc.
+backgroundColor = "#121212"  # Main background color
+secondaryBackgroundColor = "#2e2e2e"  # Sidebar background color
+textColor = "#e0e0e0"  # Text color
+font = "sans serif"  # Font style: "sans serif", "serif", or "monospace"

@@ -1,4 +1,4 @@
-```
+
 # **WhatTheGif?**
 
 This project aims to enhance inclusivity and accessibility in digital content by generating accurate and meaningful textual and audio descriptions for GIFs. The tool utilizes advanced machine learning models and cloud technologies to automate the process of making GIFs accessible to visually impaired users.
@@ -27,6 +27,14 @@ This project aims to enhance inclusivity and accessibility in digital content by
 *   The models achieved strong performance on standard metrics, indicating the effectiveness of the approach.
 *   For instance, the BLIP model, responsible for frame-level captioning, achieved a BERT F1 score or 0.90. This score demonstrate the model's ability to generate accurate and coherent descriptions.
 
+## **Demo**
+
+
+
+https://github.com/user-attachments/assets/32b84e52-37f6-4c51-8d32-19df0d6a4250
+
+
+
 ## **Impact and Use Cases**
 
 WhatTheGif? can be integrated into various platforms, including:
@@ -50,4 +58,3 @@ WhatTheGif? represents a significant step towards creating a more inclusive digi
 
 Please refer to the documentation and code in the repository for detailed instructions on installation, setup, and usage.
 
-```
